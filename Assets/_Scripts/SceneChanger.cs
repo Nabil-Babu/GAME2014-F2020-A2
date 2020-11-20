@@ -12,9 +12,15 @@ using UnityEngine.SceneManagement;
 public class SceneChanger : MonoBehaviour
 {
     public string sceneDestination; 
+    
 
     public void ChangeScene()
     {
         SceneManager.LoadScene(sceneDestination);
+    }
+
+    public void QuitApplication()
+    {
+        Application.Quit(); 
     }
 }
