@@ -17,8 +17,7 @@ public class PlayerController : MonoBehaviour
     public float joystickHorizontalSensitivity;
     public float horizontalForce;
     public float verticalForce;
-    private Animator m_animator;
-    private Rigidbody2D m_rigidBody2D;
+   
 
     [Header("Player State")]
     [SerializeField]
@@ -29,9 +28,12 @@ public class PlayerController : MonoBehaviour
     public int health;
     public int lives;
 
+    private Animator m_animator;
+    private Rigidbody2D m_rigidBody2D;
     // Start is called before the first frame update
     void Start()
     {
+
         m_rigidBody2D = GetComponent<Rigidbody2D>();
         m_animator = GetComponent<Animator>();
     }
@@ -105,6 +107,19 @@ public class PlayerController : MonoBehaviour
     public void OnTriggerEnter2D(Collider2D other)
     {
         isGrounded = true;
-        isDoubleJumping = false; 
+        isDoubleJumping = false;
+
+        if(other.CompareTag("MovingPlatform"))
+        {
+            transform.SetParent(other.gameObject.transform); 
+        } 
+    }
+
+    public void OnTriggerExit2D(Collider2D other)
+    {
+        if(other.CompareTag("MovingPlatform"))
+        {
+            transform.SetParent(null); 
+        } 
     }
 }
