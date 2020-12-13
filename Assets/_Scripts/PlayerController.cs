@@ -1,6 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
+using UnityEngine.SceneManagement; 
 
 public enum PlayerAnimStates
 {
@@ -8,7 +10,8 @@ public enum PlayerAnimStates
     RUNNING, 
     JUMPING,
     DOUBLEJUMPING,
-    ATTACKING,
+    HIT, 
+    ATTACK,
 }
 public class PlayerController : MonoBehaviour
 {
@@ -23,17 +26,22 @@ public class PlayerController : MonoBehaviour
     [SerializeField]
     private bool isGrounded = false;
     private bool isDoubleJumping = false;  
+    private bool isAttacking = false;  
     public PlayerAnimStates currentState; 
     [Header("Player Abilities")] 
-    public int health;
-    public int lives;
-
+    public float health;
+    public float maxHealth; 
+    public int playerScore = 0; 
+    public GameObject healthBar;
+    public GameObject attackPoint;
+    public ContactFilter2D filter2D;
     private Animator m_animator;
     private Rigidbody2D m_rigidBody2D;
+    public Text score; 
+    public GameObject EndTitle; 
     // Start is called before the first frame update
     void Start()
     {
-
         m_rigidBody2D = GetComponent<Rigidbody2D>();
         m_animator = GetComponent<Animator>();
     }
@@ -46,34 +54,37 @@ public class PlayerController : MonoBehaviour
 
     void _Move()
     {
-        if(joystick.Horizontal > joystickHorizontalSensitivity || Input.GetKey(KeyCode.D))
+        if(!isAttacking)
         {
-            // Move Player Right
-            m_rigidBody2D.AddForce(Vector2.right * horizontalForce * Time.deltaTime);
-            transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
-            if(isGrounded)
+            if(joystick.Horizontal > joystickHorizontalSensitivity || Input.GetKey(KeyCode.D))
             {
-                currentState = PlayerAnimStates.RUNNING;
-                m_animator.SetInteger("AnimState", (int)currentState);
+                // Move Player Right
+                m_rigidBody2D.AddForce(Vector2.right * horizontalForce * Time.deltaTime);
+                transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
+                if(isGrounded)
+                {
+                    currentState = PlayerAnimStates.RUNNING;
+                    m_animator.SetInteger("AnimState", (int)currentState);
+                }
             }
-        }
-        else if (joystick.Horizontal < - joystickHorizontalSensitivity || Input.GetKey(KeyCode.A))
-        {
-            // Move Player Left
-            m_rigidBody2D.AddForce(Vector2.left * horizontalForce * Time.deltaTime);
-            transform.localScale = new Vector3(-1.0f, 1.0f, 1.0f);
-            if(isGrounded)
+            else if (joystick.Horizontal < - joystickHorizontalSensitivity || Input.GetKey(KeyCode.A))
             {
-                currentState = PlayerAnimStates.RUNNING;
-                m_animator.SetInteger("AnimState", (int)currentState);
+                // Move Player Left
+                m_rigidBody2D.AddForce(Vector2.left * horizontalForce * Time.deltaTime);
+                transform.localScale = new Vector3(-1.0f, 1.0f, 1.0f);
+                if(isGrounded)
+                {
+                    currentState = PlayerAnimStates.RUNNING;
+                    m_animator.SetInteger("AnimState", (int)currentState);
+                }
             }
-        }
-        else 
-        {
-            if(isGrounded)
+            else 
             {
-                currentState = PlayerAnimStates.IDLE;
-                m_animator.SetInteger("AnimState", (int)currentState);
+                if(isGrounded)
+                {
+                    currentState = PlayerAnimStates.IDLE;
+                    m_animator.SetInteger("AnimState", (int)currentState);
+                }
             }
         }
 
@@ -104,6 +115,44 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    public void OnAttack()
+    {
+        if(!isAttacking)
+        {
+            StartCoroutine(Attack());
+        }
+        
+    }
+
+    IEnumerator Attack()
+    {
+        currentState = PlayerAnimStates.ATTACK;
+        m_animator.SetInteger("AnimState", (int)currentState);
+        isAttacking = true;
+        yield return new WaitForSeconds(0.33f);
+        List<RaycastHit2D> results = new List<RaycastHit2D>();
+        var hit = Physics2D.CircleCast(attackPoint.transform.position, 1.0f, new Vector2(0, 0), filter2D, results);
+        if(hit > 0)
+        {
+            if(results[0].collider.gameObject.TryGetComponent<SkellyBoiBehaviour>(out SkellyBoiBehaviour skellyBoi))
+            {
+                skellyBoi.TakeHit(new Vector2(transform.localScale.x, 0)); 
+            }
+        } 
+        yield return new WaitForSeconds(0.33f);
+        isAttacking = false; 
+    }
+
+    public void OnCollisionEnter2D(Collision2D other)
+    {
+        if(other.collider.CompareTag("Coin"))
+        {
+            playerScore+=10; 
+            UpdateScoreText();
+            Destroy(other.collider.gameObject);
+        }
+    }
+
     public void OnTriggerEnter2D(Collider2D other)
     {
         isGrounded = true;
@@ -121,5 +170,56 @@ public class PlayerController : MonoBehaviour
         {
             transform.SetParent(null); 
         } 
+    }
+
+    public void TakeDamage(float damage, Vector2 direction)
+    {
+        health -= damage;
+        currentState = PlayerAnimStates.HIT;
+        m_animator.SetInteger("AnimState", (int)currentState);
+        healthBar.transform.localScale = new Vector3(health/maxHealth, 1, 1);
+        m_rigidBody2D.AddForce(direction * 1000);
+        if(health <= 0)
+        {
+            health = 0;
+            OnDeath(); 
+        } 
+    }
+
+    public void UpdateScoreText()
+    {
+        score.text = playerScore.ToString();
+    }
+
+    public void AddToScore(int amount)
+    {
+        playerScore += amount;
+        UpdateScoreText(); 
+    }
+
+    public void OnDeath()
+    {
+        StartCoroutine(Death());
+    }
+
+    IEnumerator Death()
+    {
+        // Play Death Animation
+        m_animator.SetTrigger("Death"); 
+        yield return new WaitForSeconds(1.0f);
+        SceneManager.LoadScene("GameOverScene");  
+    }
+
+    public void OnEndGame()
+    {
+        StartCoroutine(EndGame());
+    }
+
+    IEnumerator EndGame()
+    {
+        // Play Death Animation
+        EndTitle.SetActive(true); 
+        yield return new WaitForSeconds(1.0f);
+        SceneManager.LoadScene("GameOverScene");  
     }
 }
