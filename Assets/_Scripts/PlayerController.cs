@@ -1,4 +1,10 @@
-﻿using System.Collections;
+﻿/**
+    PlayerController.cs
+    Nabil Babu
+    101214336
+    Dec 11th 2020
+*/
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -60,6 +66,7 @@ public class PlayerController : MonoBehaviour
             {
                 // Move Player Right
                 m_rigidBody2D.AddForce(Vector2.right * horizontalForce * Time.deltaTime);
+                // Flip Player 
                 transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
                 if(isGrounded)
                 {
@@ -71,6 +78,7 @@ public class PlayerController : MonoBehaviour
             {
                 // Move Player Left
                 m_rigidBody2D.AddForce(Vector2.left * horizontalForce * Time.deltaTime);
+                // Flip Player 
                 transform.localScale = new Vector3(-1.0f, 1.0f, 1.0f);
                 if(isGrounded)
                 {
@@ -95,6 +103,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    // Players Jump function adds vertical force if grounded and enabled Double Jump if already jumping
     public void Jump()
     {
         if(isGrounded)
@@ -105,9 +114,9 @@ public class PlayerController : MonoBehaviour
             currentState = PlayerAnimStates.JUMPING;
             m_animator.SetInteger("AnimState", (int)currentState);
         } 
-        else if(!isGrounded)
+        else if(!isGrounded) // If you're already jumping jump again
         {
-            if(!isDoubleJumping)
+            if(!isDoubleJumping) // stops triple jumping
             {
                 isDoubleJumping = true;
                 m_rigidBody2D.AddForce(Vector2.up * verticalForce);
@@ -115,28 +124,30 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    // Fire the Attack Coroutine
     public void OnAttack()
     {
-        if(!isAttacking)
+        if(!isAttacking) // Locks the coroutine
         {
             StartCoroutine(Attack());
         }
         
     }
-
+    // Attack Coroutine, This CircleCasts to check for enemies in range and damages them. 
     IEnumerator Attack()
     {
         currentState = PlayerAnimStates.ATTACK;
         m_animator.SetInteger("AnimState", (int)currentState);
-        isAttacking = true;
+        isAttacking = true; // Flag to make sure player can't spam attack
         yield return new WaitForSeconds(0.33f);
-        List<RaycastHit2D> results = new List<RaycastHit2D>();
+        List<RaycastHit2D> results = new List<RaycastHit2D>(); // Holds results of the cast
         var hit = Physics2D.CircleCast(attackPoint.transform.position, 1.0f, new Vector2(0, 0), filter2D, results);
         if(hit > 0)
         {
-            if(results[0].collider.gameObject.TryGetComponent<SkellyBoiBehaviour>(out SkellyBoiBehaviour skellyBoi))
+            if(results[0].collider.gameObject.TryGetComponent<SkellyBoiBehaviour>(out SkellyBoiBehaviour skellyBoi)) // Checks to see if other object is a Skeleton
             {
-                skellyBoi.TakeHit(new Vector2(transform.localScale.x, 0)); 
+                SoundManager.instance.PLaySE("Sword2");
+                skellyBoi.TakeHit(new Vector2(transform.localScale.x, 0)); //Pass in the direct the hit is coming from 
             }
         } 
         yield return new WaitForSeconds(0.33f);
@@ -148,7 +159,8 @@ public class PlayerController : MonoBehaviour
         if(other.collider.CompareTag("Coin"))
         {
             playerScore+=10; 
-            UpdateScoreText();
+            UpdateScoreText(); // Updates the Text on the Canvas
+            SoundManager.instance.PLaySE("Coin");
             Destroy(other.collider.gameObject);
         }
     }
@@ -160,7 +172,7 @@ public class PlayerController : MonoBehaviour
 
         if(other.CompareTag("MovingPlatform"))
         {
-            transform.SetParent(other.gameObject.transform); 
+            transform.SetParent(other.gameObject.transform); //Makes sure the player is moving with the platform
         } 
     }
 
@@ -172,6 +184,7 @@ public class PlayerController : MonoBehaviour
         } 
     }
 
+    // Take Damage reduces health, plays animation, and updates healthbar
     public void TakeDamage(float damage, Vector2 direction)
     {
         health -= damage;
@@ -182,7 +195,7 @@ public class PlayerController : MonoBehaviour
         if(health <= 0)
         {
             health = 0;
-            OnDeath(); 
+            OnDeath(); // Triggers OnDeath Coroutine
         } 
     }
 
@@ -210,6 +223,7 @@ public class PlayerController : MonoBehaviour
         SceneManager.LoadScene("GameOverScene");  
     }
 
+    // Starts End Game Coroutine
     public void OnEndGame()
     {
         StartCoroutine(EndGame());
@@ -217,7 +231,7 @@ public class PlayerController : MonoBehaviour
 
     IEnumerator EndGame()
     {
-        // Play Death Animation
+        // Enabled End Title Text
         EndTitle.SetActive(true); 
         yield return new WaitForSeconds(1.0f);
         SceneManager.LoadScene("GameOverScene");  

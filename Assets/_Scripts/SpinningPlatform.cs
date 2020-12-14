@@ -1,4 +1,10 @@
-﻿using System.Collections;
+﻿/**
+    SpinningPlatform.cs
+    Nabil Babu
+    101214336
+    Dec 12th 2020
+*/
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 

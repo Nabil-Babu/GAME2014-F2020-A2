@@ -1,4 +1,10 @@
-﻿using System.Collections;
+﻿/**
+    MovingPlatform.cs
+    Nabil Babu
+    101214336
+    Dec 11th 2020
+*/
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -64,7 +70,7 @@ public class MovingPlatform : MonoBehaviour
             }    
         }
     }
-
+    // Pause Timer for the Platform
     IEnumerator PauseTimer()
     {
         lockPosition = true;
