@@ -5632,11 +5632,6 @@ TilemapCollider2D:
   m_Offset: {x: 0, y: 0}
   m_MaximumTileChangeCount: 1000
   m_ExtrusionFactor: 0.00001
---- !u!1 &1075711187 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 1075711187, guid: 626b542abfa839d41b27e1c44f24bcf2, type: 3}
-  m_PrefabInstance: {fileID: 6523220166029368761}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1129718607
 GameObject:
   m_ObjectHideFlags: 0
@@ -10742,6 +10737,10 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 4269163885244417809, guid: 626b542abfa839d41b27e1c44f24bcf2, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6523220165901119824, guid: 626b542abfa839d41b27e1c44f24bcf2, type: 3}
       propertyPath: m_Name
       value: Player
@@ -10793,6 +10792,11 @@ PrefabInstance:
     - target: {fileID: 7995188935259910747, guid: 626b542abfa839d41b27e1c44f24bcf2, type: 3}
       propertyPath: EndTitle
       value: 
-      objectReference: {fileID: 1075711187}
+      objectReference: {fileID: 6523220166029368762}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 626b542abfa839d41b27e1c44f24bcf2, type: 3}
+--- !u!1 &6523220166029368762 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4269163885244417809, guid: 626b542abfa839d41b27e1c44f24bcf2, type: 3}
+  m_PrefabInstance: {fileID: 6523220166029368761}
+  m_PrefabAsset: {fileID: 0}
